@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 
+//acesta este un comment!!!
 namespace Framework.ViewModel
 {
     public class BaseVM : INotifyPropertyChanged
