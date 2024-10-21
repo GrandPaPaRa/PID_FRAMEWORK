@@ -167,7 +167,11 @@
                           Foreground="#1E1E1E"
                           Command="{Binding Path=MenuCommands.ConvertImageToGrayscaleCommand}"
                           CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
-            </MenuItem>
+                <MenuItem Header="Binary"
+                          Foreground="#1E1E1E"
+                          Command="{Binding Path=MenuCommands.BinaryCommand}"
+                          CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
+                </MenuItem>
 
             <MenuItem Header="Pointwise operations"
                       Background="{Binding Path=Theme.MenuItemBackgroundColor}"

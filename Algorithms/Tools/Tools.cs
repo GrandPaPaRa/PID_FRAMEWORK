@@ -56,5 +56,23 @@ namespace Algorithms.Tools
             return result;
         }
         #endregion
+
+        #region Binary
+        public static Image<Gray, byte> Binary(Image<Gray, byte> inputImage,
+        double threshold)
+        {
+            Image<Gray, byte> result = new Image<Gray, byte>(inputImage.Size);
+            for (int y = 0; y < inputImage.Height; ++y)
+            {
+                for (int x = 0; x < inputImage.Width; ++x)
+                {
+                    if (inputImage.Data[y, x, 0] > threshold)
+                        result.Data[y, x, 0] = 255;
+                }
+            }
+            return result;
+        }
+        #endregion
+
     }
 }
