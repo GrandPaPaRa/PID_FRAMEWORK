@@ -594,6 +594,44 @@ namespace Framework.ViewModel
         }
         #endregion
 
+        #region Binary
+        private ICommand _binaryCommand;
+        public ICommand BinaryCommand
+        {
+            get
+            {
+                if (_binaryCommand == null)
+                    _binaryCommand = new RelayCommand(Binary);
+                return _binaryCommand;
+            }
+        }
+        private void Binary(object parameter)
+        {
+            if (SliderOn == true) return;
+            if (InitialImage == null)
+            {
+                MessageBox.Show("Please add an image !");
+                return;
+            }
+
+            SliderWindow window = new SliderWindow(_mainVM, "Threshold: ");
+            window.ConfigureSlider(10, 245, 10, 5);
+            if (GrayInitialImage != null)
+            {
+                window.SetWindowData(
+                image: GrayInitialImage,
+                algorithm: Tools.Binary);
+            }
+            else // if (ColorInitialImage != null)
+            {
+                window.SetWindowData(
+                image: Tools.Convert(ColorInitialImage),
+                algorithm: Tools.Binary);
+            }
+            window.Show();
+        }
+        #endregion
+
         #endregion
 
         #region Pointwise operations
