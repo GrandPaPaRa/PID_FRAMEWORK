@@ -7,6 +7,7 @@ using System.Windows.Controls;
 
 using static Framework.Utilities.DataProvider;
 using static Framework.Utilities.DrawingHelper;
+using System.Linq;
 
 namespace Framework.Utilities
 {
@@ -40,6 +41,14 @@ namespace Framework.Utilities
                 DrawInitialColumnLine(initialCanvas, scaleValue);
                 DrawProcessedColumnLine(processedCanvas, scaleValue);
             }
+            if (VectorOfMousePosition.Count != 0 && VectorOfMousePosition.Count % 2 == 0) {
+                DrawCropWindow(initialCanvas,
+                    VectorOfMousePosition[VectorOfMousePosition.Count - 2],
+                    VectorOfMousePosition[VectorOfMousePosition.Count - 1],
+                    2,
+                    new SolidColorBrush(Colors.Blue),
+                    scaleValue);
+            }
         }
 
         public static void RemoveUiElements(Canvas initialCanvas, Canvas processedCanvas)
@@ -52,6 +61,9 @@ namespace Framework.Utilities
 
             RemoveUiElement(initialCanvas, _initialColumnLine);
             RemoveUiElement(processedCanvas, _processedColumnLine);
+
+            if (VectorOfRectangles.Count > 0)
+                RemoveUiElement(initialCanvas, VectorOfRectangles.Last());
         }
 
         private static Rectangle GetSquare(Canvas canvas, Point point, double scaleValue)

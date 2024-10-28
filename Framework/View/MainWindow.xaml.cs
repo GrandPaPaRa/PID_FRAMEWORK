@@ -31,7 +31,7 @@ namespace Framework.View
         public void Update()
         {
             double scaleValue = sliderZoom.Value;
-
+            
             RemoveUiElements(canvasOriginalImage, canvasProcessedImage);
             DrawUiElements(canvasOriginalImage, canvasProcessedImage, scaleValue);
         }
@@ -91,11 +91,13 @@ namespace Framework.View
                 VectorOfMousePosition.Add(MousePosition);
                 LastPosition = MousePosition;
             }
+           
         }
 
         private void ImageMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             VectorOfMousePosition.Clear();
+            RemoveUiElement(canvasOriginalImage, VectorOfRectangles.Last());
         }
 
         private void CanvasMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

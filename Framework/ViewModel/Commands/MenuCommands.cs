@@ -16,6 +16,7 @@ using static Framework.Converters.ImageConverter;
 using Algorithms.Sections;
 using Algorithms.Tools;
 using Algorithms.Utilities;
+using Framework.ViewModel;
 
 namespace Framework.ViewModel
 {
@@ -651,5 +652,76 @@ namespace Framework.ViewModel
             ClearProcessedCanvas(canvases[1] as Canvas);
         }
         #endregion
+
+        #region Binary
+        private ICommand _binaryCommand;
+        public ICommand BinaryCommand {
+            get {
+                if (_binaryCommand == null)
+                    _binaryCommand = new RelayCommand(Binary);
+                return _binaryCommand;
+            }
+        }
+        private void Binary(object parameter)
+        {
+            if (SliderOn == true) return;
+            if (InitialImage == null) {
+                MessageBox.Show("Please add an image !");
+                return;
+            }
+            SliderWindow window = new SliderWindow(_mainVM, "Threshold: ");
+            window.ConfigureSlider(10, 245, 10, 5);
+            if (GrayInitialImage != null) {
+                window.SetWindowData(image: GrayInitialImage, algorithm: Tools.Binary);
+            }
+            else // if (ColorInitialImage != null)
+                 { window.SetWindowData( image: Tools.Convert(ColorInitialImage),
+                     algorithm: Tools.Binary);
+            }
+            window.Show();
+        }
+        #endregion
+
+        #region Crop
+        private ICommand _cropCommand;
+        public ICommand CropCommand
+        {
+            get
+            {
+                if (_cropCommand == null)
+                    _cropCommand = new RelayCommand(Crop);
+                return _cropCommand;
+            }
+        }
+        private void Crop(object parameter)
+        {
+            if (InitialImage == null)
+            {
+                MessageBox.Show("Please add an image !");
+                return;
+            }
+            if (VectorOfMousePosition.Count % 2 != 0 || VectorOfMousePosition.Count == 0) {
+                MessageBox.Show("Please select an area to crop !");
+                return;
+            }
+
+            System.Drawing.Point firstPoint = new System.Drawing.Point((int)VectorOfMousePosition[VectorOfMousePosition.Count - 1].X,
+                (int)VectorOfMousePosition[VectorOfMousePosition.Count - 1].Y) ;
+            System.Drawing.Point secondPoint = new System.Drawing.Point((int)VectorOfMousePosition[VectorOfMousePosition.Count - 2].X,
+                (int)VectorOfMousePosition[VectorOfMousePosition.Count - 2].Y);
+            if (GrayInitialImage != null) {
+                GrayProcessedImage = Tools.Crop(GrayInitialImage,
+                    firstPoint,
+                    secondPoint);
+                ProcessedImage = Convert(GrayProcessedImage);
+            }
+            else // if (ColorInitialImage != null)
+            {
+                ColorProcessedImage = Tools.Crop(ColorInitialImage, firstPoint, secondPoint);
+                ProcessedImage = Convert(ColorProcessedImage);
+            }
+        }
+        #endregion
+
     }
 }

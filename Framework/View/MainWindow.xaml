@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Framework.ViewModel"
+        xmlns:utilities="clr-namespace:Framework.Utilities"
         xmlns:convert="clr-namespace:Framework.Converters"
         mc:Ignorable="d"
         Title="Image Processing"
@@ -166,6 +167,10 @@
                 <MenuItem Header="Transform to gray image"
                           Foreground="#1E1E1E"
                           Command="{Binding Path=MenuCommands.ConvertImageToGrayscaleCommand}"
+                          CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
+                <MenuItem Header="Binary" Foreground="#1E1E1E" Command="{Binding Path=MenuCommands.BinaryCommand}"
+                          CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
+                <MenuItem Header="Crop" Foreground="#1E1E1E" Command="{Binding Path=MenuCommands.CropCommand}"
                           CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
             </MenuItem>
 

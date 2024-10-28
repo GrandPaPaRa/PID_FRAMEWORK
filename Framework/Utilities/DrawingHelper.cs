@@ -128,6 +128,15 @@ namespace Framework.Utilities
 
             return polygon;
         }
+        public static Rectangle DrawCropWindow(
+            Canvas canvas, Point firstMousePoz, Point lastMousePos, int thickness, Brush color, double scaleValue)
+        {
+            Point leftTop = new Point(firstMousePoz.X < lastMousePos.X ? firstMousePoz.X : lastMousePos.X,
+                firstMousePoz.Y < lastMousePos.Y ? firstMousePoz.Y : lastMousePos.Y);
+            Point rightBottom = new Point(firstMousePoz.X > lastMousePos.X ? firstMousePoz.X : lastMousePos.X,
+                firstMousePoz.Y > lastMousePos.Y ? firstMousePoz.Y : lastMousePos.Y);
+            return DrawRectangle(canvas, leftTop, rightBottom, thickness, color, scaleValue);
+        }
 
         public static bool RemoveUiElement(Canvas canvas, UIElement element)
         {

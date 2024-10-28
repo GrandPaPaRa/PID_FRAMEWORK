@@ -5,7 +5,7 @@ namespace Framework.ViewModel
 {
     public class RelayCommand : ICommand
     {
-        private readonly Action<object> execute;
+        private readonly Action<object[]> execute;
         private readonly Func<object, bool> canExecute;
 
         public event EventHandler CanExecuteChanged
@@ -20,7 +20,7 @@ namespace Framework.ViewModel
             }
         }
 
-        public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
+        public RelayCommand(Action<object[]> execute, Func<object, bool> canExecute = null)
         {
             this.execute = execute;
             this.canExecute = canExecute;
@@ -33,7 +33,7 @@ namespace Framework.ViewModel
 
         public void Execute(object parameter)
         {
-            execute(parameter);
+            execute(parameter as object[]);
         }
     }
 }
