@@ -172,6 +172,14 @@
                           CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
                 <MenuItem Header="Crop" Foreground="#1E1E1E" Command="{Binding Path=MenuCommands.CropCommand}"
                           CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
+                <MenuItem Header="Mirror" Foreground="#1E1E1E" Command="{Binding Path=MenuCommands.MirrorCommand}"
+           CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
+                <MenuItem Header="Rotate" Foreground="#1E1E1E">
+                    <MenuItem Header="Clockwise" Foreground="#1E1E1E" Command="{Binding Path=MenuCommands.ClockwiseCommand}"
+                        CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
+                    <MenuItem Header="Anti-Clockwise" Foreground="#1E1E1E" Command="{Binding Path=MenuCommands.AntiClockwiseCommand}"
+                        CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="Pointwise operations"

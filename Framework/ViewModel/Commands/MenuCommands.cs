@@ -1,6 +1,5 @@
 ﻿using Emgu.CV;
 using Emgu.CV.Structure;
-
 using System.Windows;
 using System.Drawing.Imaging;
 using System.Windows.Input;
@@ -489,7 +488,6 @@ namespace Framework.ViewModel
 
         #endregion
 
-
         #region Copy image
         private ICommand _copyImageCommand;
         public ICommand CopyImageCommand
@@ -591,6 +589,104 @@ namespace Framework.ViewModel
             {
                 MessageBox.Show("It is possible to convert only color images !");
             }
+        }
+        #endregion
+
+        #region Mirror
+        private ICommand _mirrorCommand;
+        public ICommand MirrorCommand
+        {
+            get
+            {
+                if (_mirrorCommand == null)
+                    _mirrorCommand = new RelayCommand(Mirror);
+                return _mirrorCommand;
+            }
+        }
+        private void Mirror(object parameter)
+        {
+            if (SliderOn == true) return;
+            if (InitialImage == null)
+            {
+                MessageBox.Show("Please add an image !");
+                return;
+            }
+            if (GrayInitialImage != null)
+            {
+                GrayProcessedImage = GrayInitialImage.Flip(Emgu.CV.CvEnum.FLIP.HORIZONTAL);
+                ProcessedImage = Convert(GrayProcessedImage);
+            }
+            else {
+                ColorProcessedImage = ColorInitialImage.Flip(Emgu.CV.CvEnum.FLIP.HORIZONTAL);
+                ProcessedImage = Convert(ColorProcessedImage);
+            }
+
+        }
+        #endregion
+
+        #region Clockwise
+        private ICommand _clockwiseCommand;
+        public ICommand ClockwiseCommand
+        {
+            get
+            {
+                if (_clockwiseCommand == null)
+                    _clockwiseCommand = new RelayCommand(Clockwise);
+                return _clockwiseCommand;
+            }
+        }
+        private void Clockwise(object parameter)
+        {
+            if (SliderOn == true) return;
+            if (InitialImage == null)
+            {
+                MessageBox.Show("Please add an image !");
+                return;
+            }
+            if (GrayInitialImage != null)
+            {
+                GrayProcessedImage = GrayInitialImage.Rotate(90, new Gray(), false);
+                ProcessedImage = Convert(GrayProcessedImage);
+            }
+            else
+            {
+                ColorProcessedImage = ColorInitialImage.Rotate(90, new Bgr(), false);
+                ProcessedImage = Convert(ColorProcessedImage);
+            }
+
+        }
+        #endregion
+
+        #region AntiClockwise
+        private ICommand _antiClockwiseCommand;
+        public ICommand AntiClockwiseCommand
+        {
+            get
+            {
+                if (_antiClockwiseCommand == null)
+                    _antiClockwiseCommand = new RelayCommand(AntiClockwise);
+                return _antiClockwiseCommand;
+            }
+        }
+        private void AntiClockwise(object parameter)
+        {
+            if (SliderOn == true) return;
+            if (InitialImage == null)
+            {
+                MessageBox.Show("Please add an image !");
+                return;
+            }
+            if (GrayInitialImage != null)
+            {
+                GrayProcessedImage = GrayInitialImage.Rotate(-90, new Gray(), false);
+                ProcessedImage = Convert(GrayProcessedImage);
+            }
+            else
+            {
+                ColorProcessedImage = ColorInitialImage.Rotate(-90, new Bgr(), false);
+                ProcessedImage = Convert(ColorProcessedImage);
+            }
+
         }
         #endregion
 
