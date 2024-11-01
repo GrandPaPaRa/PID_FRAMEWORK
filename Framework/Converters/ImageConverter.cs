@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
+using MatFileHandler;
 
 namespace Framework.Converters
 {
@@ -24,5 +25,7 @@ namespace Framework.Converters
                Int32Rect.Empty,
                BitmapSizeOptions.FromEmptyOptions());
         }
-    }
+        
+            
+        }
 }

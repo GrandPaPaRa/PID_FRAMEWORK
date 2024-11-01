@@ -66,6 +66,16 @@
                         </MultiBinding>
                     </MenuItem.CommandParameter>
                 </MenuItem>
+                <MenuItem Header="Load .mat image" 
+           Foreground="#1E1E1E"
+           Command="{Binding Path=MenuCommands.LoadMatImageCommand}">
+                    <MenuItem.CommandParameter>
+                        <MultiBinding Converter="{StaticResource arrayMultiValueConverter}">
+                            <Binding ElementName="canvasOriginalImage"/>
+                            <Binding ElementName="canvasProcessedImage"/>
+                        </MultiBinding>
+                    </MenuItem.CommandParameter>
+                </MenuItem>
                 <Separator/>
                 <MenuItem Header="Save processed image"
                           Foreground="#1E1E1E"

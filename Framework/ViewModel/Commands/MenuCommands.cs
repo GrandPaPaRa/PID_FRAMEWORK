@@ -5,6 +5,8 @@ using System.Drawing.Imaging;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Controls;
+using static System.Windows.MessageBox;
+
 
 using Framework.View;
 using static Framework.Utilities.DataProvider;
@@ -16,6 +18,15 @@ using Algorithms.Sections;
 using Algorithms.Tools;
 using Algorithms.Utilities;
 using Framework.ViewModel;
+
+using MatFileHandler;
+using System.Windows.Forms;
+using System.Media;
+using System.Drawing;
+using System;
+using OpenTK.Graphics.ES11;
+using Emgu.CV.CvEnum;
+using Framework.Utilities;
 
 namespace Framework.ViewModel
 {
@@ -114,7 +125,7 @@ namespace Framework.ViewModel
         {
             if (GrayProcessedImage == null && ColorProcessedImage == null)
             {
-                MessageBox.Show("If you want to save your processed image, " +
+                System.Windows.MessageBox.Show("If you want to save your processed image, " +
                     "please load and process an image first!");
                 return;
             }
@@ -125,6 +136,108 @@ namespace Framework.ViewModel
                 GrayProcessedImage?.Bitmap.Save(imagePath, GetJpegCodec("image/jpeg"), GetEncoderParameter(Encoder.Quality, 100));
                 ColorProcessedImage?.Bitmap.Save(imagePath, GetJpegCodec("image/jpeg"), GetEncoderParameter(Encoder.Quality, 100));
                 OpenImage(imagePath);
+            }
+        }
+        #endregion
+
+        #region Load .mat image
+        private ICommand _loadMatImageCommand;
+        public ICommand LoadMatImageCommand
+        {
+            get
+            {
+                if (_loadMatImageCommand == null)
+                    _loadMatImageCommand = new RelayCommand(LoadMatImage);
+                return _loadMatImageCommand;
+            }
+        }
+
+        private void LoadMatImage(object parameter)
+        {
+            Clear(parameter);
+
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Title = "Multispectral",
+                Filter = "MAT-files (*.mat)|*.mat|All Files (*.*)|*.*",
+                FilterIndex = 1,
+                DefaultExt = "mat"
+            };
+            string fileName = null;
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                fileName = openFileDialog.FileName;
+            }
+            else {
+                return;
+            }
+
+            if (fileName != null)
+            {
+                IMatFile matFile;
+                using (var fileStream = new System.IO.FileStream(fileName, System.IO.FileMode.Open))
+                {
+                    var reader = new MatFileReader(fileStream);
+                    matFile = reader.Read();
+                    var imageMatrix = matFile.Variables[0].Value.ConvertToDoubleArray();
+
+                //return (z * xMax * yMax) + (y * xMax) + x;
+               
+                    int width = matFile.Variables[0].Value.Dimensions[0];
+                    int height = matFile.Variables[0].Value.Dimensions[1];
+                    int depth = matFile.Variables[0].Value.Dimensions[2];
+
+                    double maxR = -999999999;
+                    double minR = 9999999999;
+
+                    double maxG = -999999999;
+                    double minG = 9999999999;
+
+                    double maxB = -999999999;
+                    double minB = 9999999999;
+
+                    var currentRGB = DataProvider.PaviaRGB;
+
+                    for (int y = 0; y < height; y++) {
+                        for (int x = 0; x < width; x++) {
+                            if (imageMatrix[currentRGB.Item1 * width * height + y * width + x] > maxR)
+                                maxR = imageMatrix[currentRGB.Item1 * width * height + y * width + x];
+                            if (imageMatrix[currentRGB.Item1 * width * height + y * width + x] < minR)
+                                minR = imageMatrix[currentRGB.Item1 * width * height + y * width + x];
+
+                            if (imageMatrix[currentRGB.Item2 * width * height + y * width + x] > maxG)
+                                maxG = imageMatrix[currentRGB.Item2 * width * height + y * width + x];
+                            if (imageMatrix[currentRGB.Item2 * width * height + y * width + x] < minG)
+                                minG = imageMatrix[currentRGB.Item2 * width * height + y * width + x];
+
+                            if (imageMatrix[currentRGB.Item3 * width * height + y * width + x] > maxB)
+                                maxB = imageMatrix[currentRGB.Item3 * width * height + y * width + x];
+                            if (imageMatrix[currentRGB.Item3 * width * height + y * width + x] < minB)
+                                minB = imageMatrix[currentRGB.Item3 * width * height + y * width + x];
+                        }
+                    }
+
+                    //convert to bitmap
+                    Bitmap bitmap = new Bitmap(width, height);
+                    for (int y = 0; y < height; y++)
+                    {
+                        for (int x = 0; x < width; x++)
+                        {
+                            int rawR = (int)(imageMatrix[currentRGB.Item1 * width * height + y * width + x] ); // Red channel
+                            int rawG = (int)(imageMatrix[currentRGB.Item2 * width * height + y * width + x] ); // Green channel
+                            int rawB = (int)(imageMatrix[currentRGB.Item3 * width * height + y * width + x] ); // Blue channel
+
+                            // Clamp values to 0-255 range
+                            int r = (int)(Math.Max(0, Math.Min(255, ((rawR - minR) / (maxR - minR)) * 255)));
+                            int g = (int)(Math.Max(0, Math.Min(255, ((rawG - minG) / (maxG - minG)) * 255)));
+                            int b = (int)(Math.Max(0, Math.Min(255, ((rawB - minB) / (maxB - minB)) * 255)));
+
+                            // Set the pixel color in the bitmap
+                            bitmap.SetPixel(x, y, System.Drawing.Color.FromArgb(r, g, b));
+                        }
+                    }
+                    InitialImage = Convert(bitmap);
+                }
             }
         }
         #endregion
@@ -145,14 +258,14 @@ namespace Framework.ViewModel
         {
             if (GrayInitialImage == null && ColorInitialImage == null)
             {
-                MessageBox.Show("If you want to save both images, " +
+                System.Windows.MessageBox.Show("If you want to save both images, " +
                     "please load and process an image first!");
                 return;
             }
 
             if (GrayProcessedImage == null && ColorProcessedImage == null)
             {
-                MessageBox.Show("If you want to save both images, " +
+                System.Windows.MessageBox.Show("If you want to save both images, " +
                     "please process your image first!");
                 return;
             }
@@ -347,7 +460,7 @@ namespace Framework.ViewModel
             if (MagnifierOn == true) return;
             if (VectorOfMousePosition.Count == 0)
             {
-                MessageBox.Show("Please select an area first.");
+                System.Windows.MessageBox.Show("Please select an area first.");
                 return;
             }
 
@@ -375,7 +488,7 @@ namespace Framework.ViewModel
             if (RowColorLevelsOn == true) return;
             if (VectorOfMousePosition.Count == 0)
             {
-                MessageBox.Show("Please select an area first.");
+                System.Windows.MessageBox.Show("Please select an area first.");
                 return;
             }
 
@@ -401,7 +514,7 @@ namespace Framework.ViewModel
             if (ColumnColorLevelsOn == true) return;
             if (VectorOfMousePosition.Count == 0)
             {
-                MessageBox.Show("Please select an area first.");
+                System.Windows.MessageBox.Show("Please select an area first.");
                 return;
             }
 
@@ -431,7 +544,7 @@ namespace Framework.ViewModel
             if (InitialHistogramOn == true) return;
             if (InitialImage == null)
             {
-                MessageBox.Show("Please add an image !");
+                System.Windows.MessageBox.Show("Please add an image !");
                 return;
             }
 
@@ -467,7 +580,7 @@ namespace Framework.ViewModel
             if (ProcessedHistogramOn == true) return;
             if (ProcessedImage == null)
             {
-                MessageBox.Show("Please process an image !");
+                System.Windows.MessageBox.Show("Please process an image !");
                 return;
             }
 
@@ -504,7 +617,7 @@ namespace Framework.ViewModel
         {
             if (InitialImage == null)
             {
-                MessageBox.Show("Please add an image !");
+                System.Windows.MessageBox.Show("Please add an image !");
                 return;
             }
 
@@ -539,7 +652,7 @@ namespace Framework.ViewModel
         {
             if (InitialImage == null)
             {
-                MessageBox.Show("Please add an image !");
+                System.Windows.MessageBox.Show("Please add an image !");
                 return;
             }
 
@@ -574,7 +687,7 @@ namespace Framework.ViewModel
         {
             if (InitialImage == null)
             {
-                MessageBox.Show("Please add an image !");
+                System.Windows.MessageBox.Show("Please add an image !");
                 return;
             }
 
@@ -587,7 +700,7 @@ namespace Framework.ViewModel
             }
             else
             {
-                MessageBox.Show("It is possible to convert only color images !");
+                System.Windows.MessageBox.Show("It is possible to convert only color images !");
             }
         }
         #endregion
@@ -608,7 +721,7 @@ namespace Framework.ViewModel
             if (SliderOn == true) return;
             if (InitialImage == null)
             {
-                MessageBox.Show("Please add an image !");
+                System.Windows.MessageBox.Show("Please add an image !");
                 return;
             }
             if (GrayInitialImage != null)
@@ -640,7 +753,7 @@ namespace Framework.ViewModel
             if (SliderOn == true) return;
             if (InitialImage == null)
             {
-                MessageBox.Show("Please add an image !");
+                System.Windows.MessageBox.Show("Please add an image !");
                 return;
             }
             if (GrayInitialImage != null)
@@ -673,7 +786,7 @@ namespace Framework.ViewModel
             if (SliderOn == true) return;
             if (InitialImage == null)
             {
-                MessageBox.Show("Please add an image !");
+                System.Windows.MessageBox.Show("Please add an image !");
                 return;
             }
             if (GrayInitialImage != null)
@@ -726,7 +839,7 @@ namespace Framework.ViewModel
         {
             if (ProcessedImage == null)
             {
-                MessageBox.Show("Please process an image first.");
+                System.Windows.MessageBox.Show("Please process an image first.");
                 return;
             }
 
@@ -762,7 +875,7 @@ namespace Framework.ViewModel
         {
             if (SliderOn == true) return;
             if (InitialImage == null) {
-                MessageBox.Show("Please add an image !");
+                System.Windows.MessageBox.Show("Please add an image !");
                 return;
             }
             SliderWindow window = new SliderWindow(_mainVM, "Threshold: ");
@@ -793,11 +906,11 @@ namespace Framework.ViewModel
         {
             if (InitialImage == null)
             {
-                MessageBox.Show("Please add an image !");
+                System.Windows.MessageBox.Show("Please add an image !");
                 return;
             }
             if (VectorOfMousePosition.Count % 2 != 0 || VectorOfMousePosition.Count == 0) {
-                MessageBox.Show("Please select an area to crop !");
+                System.Windows.MessageBox.Show("Please select an area to crop !");
                 return;
             }
 

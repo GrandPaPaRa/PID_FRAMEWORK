@@ -24,7 +24,7 @@ namespace Framework.Utilities
         public static bool ProcessedHistogramOn { get; set; }
         public static bool HistogramOn { get; set; }
         public static bool SliderOn { get; set; }
-
+        public static readonly (int, int, int) PaviaRGB = ( 63, 38, 13 );
         static DataProvider()
         {
             MousePosition = new Point(0, 0);
