@@ -195,12 +195,17 @@
             <MenuItem Header="Pointwise operations"
                       Background="{Binding Path=Theme.MenuItemBackgroundColor}"
                       Foreground="{Binding Path=Theme.MenuItemForegroundColor}">
-
+                <MenuItem Header="Gamma Correction" Foreground="#1E1E1E"
+                    Command="{Binding Path=MenuCommands.GammaCorrectionCommand}"
+                    CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
             </MenuItem>
 
             <MenuItem Header="Thresholding"
                       Background="{Binding Path=Theme.MenuItemBackgroundColor}"
                       Foreground="{Binding Path=Theme.MenuItemForegroundColor}">
+                <MenuItem Header="Adaptive Binary" Foreground="#1E1E1E"
+                Command="{Binding Path=MenuCommands.AdaptiveBinaryCommand}"
+                CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
 
             </MenuItem>
 

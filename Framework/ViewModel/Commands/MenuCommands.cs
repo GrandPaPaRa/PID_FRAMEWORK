@@ -27,6 +27,7 @@ using System;
 using OpenTK.Graphics.ES11;
 using Emgu.CV.CvEnum;
 using Framework.Utilities;
+using System.Collections.Generic;
 
 namespace Framework.ViewModel
 {
@@ -236,6 +237,8 @@ namespace Framework.ViewModel
                             bitmap.SetPixel(x, y, System.Drawing.Color.FromArgb(r, g, b));
                         }
                     }
+                    
+                    ColorInitialImage = new Image<Bgr, byte>(bitmap);
                     InitialImage = Convert(bitmap);
                 }
             }
@@ -806,22 +809,95 @@ namespace Framework.ViewModel
         #endregion
 
         #region Pointwise operations
+
+        #region GammaCorrection
+        private ICommand _gammaCorrectionCommand;
+        public ICommand GammaCorrectionCommand
+        {
+            get
+            {
+                if (_gammaCorrectionCommand == null)
+                    _gammaCorrectionCommand = new RelayCommand(GammaCorrection);
+                return _gammaCorrectionCommand;
+            }
+        }
+        private void GammaCorrection(object parameter)
+        {
+            if (SliderOn == true) return;
+            if (InitialImage == null)
+            {
+                System.Windows.MessageBox.Show("Please add an image !");
+                return;
+            }
+            SliderWindow window = new SliderWindow(_mainVM, "Gamma Value: ");
+            window.ConfigureSlider(0, 5, 0.5, 0.5);
+            if (GrayInitialImage != null)
+            {
+                window.SetWindowData(image: GrayInitialImage, algorithm: Tools.GammaCorrection);
+            }
+            else // if (ColorInitialImage != null)
+            {
+                window.SetWindowData(image: ColorInitialImage,
+                algorithm: Tools.GammaCorrection);
+            }
+            window.Show();
+        }
+        #endregion
+
         #endregion
 
         #region Thresholding
+
+        #region Adaptive Binary
+        private ICommand _adaptiveBinaryCommand;
+        public ICommand AdaptiveBinaryCommand
+        {
+            get
+            {
+                if (_adaptiveBinaryCommand == null)
+                    _adaptiveBinaryCommand = new RelayCommand(AdaptiveBinary);
+                return _adaptiveBinaryCommand;
+            }
+        }
+        private void AdaptiveBinary(object parameter)
+        {
+            if (InitialImage == null) {
+                System.Windows.MessageBox.Show("Please add an image !");
+                return;
+            }
+            ClearProcessedCanvas(parameter);
+            List<string> parameters = new List<string>() { "Dimension for mask: ", };
+            DialogBox window = new DialogBox(_mainVM, parameters);
+            window.ShowDialog();
+
+            List<double> values = window.GetValues();
+            int windowDimension = (int)values[0];
+            
+            if (GrayInitialImage != null) {
+                GrayProcessedImage = Tools.AdaptiveBinary(GrayInitialImage, windowDimension);
+                ProcessedImage = Convert(GrayProcessedImage);
+            }
+            else // if (ColorInitialImage != null)
+            {   GrayProcessedImage = Tools.Convert(ColorInitialImage);
+                GrayProcessedImage = Tools.Binary(GrayProcessedImage, windowDimension);
+                ProcessedImage = Convert(GrayProcessedImage);
+            } 
+        }
         #endregion
+
+       #endregion
 
         #region Filters
-        #endregion
+                #endregion
 
         #region Morphological operations
-        #endregion
+                #endregion
 
         #region Geometric transformations
-        #endregion
+                #endregion
 
         #region Segmentation
-        #endregion
+                #endregion
 
         #region Save processed image as original image
         private ICommand _saveAsOriginalImageCommand;

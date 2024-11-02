@@ -1,5 +1,6 @@
 ﻿using Emgu.CV;
 using Emgu.CV.Structure;
+using System.Drawing;
 using System.Linq;
 using System.Windows;
 using PointCollection = System.Windows.Media.PointCollection;
@@ -12,9 +13,8 @@ namespace Framework.Utilities
         public static Image<Gray, byte> GrayProcessedImage { get; set; }
         public static Image<Bgr, byte> ColorInitialImage { get; set; }
         public static Image<Bgr, byte> ColorProcessedImage { get; set; }
-
-        public static Point MousePosition { get; set; }
-        public static Point LastPosition { get; set; }
+        public static System.Windows.Point MousePosition { get; set; }
+        public static System.Windows.Point LastPosition { get; set; }
         public static PointCollection VectorOfMousePosition { get; set; }
 
         public static bool MagnifierOn { get; set; }
@@ -27,7 +27,7 @@ namespace Framework.Utilities
         public static readonly (int, int, int) PaviaRGB = ( 63, 38, 13 );
         static DataProvider()
         {
-            MousePosition = new Point(0, 0);
+            MousePosition = new System.Windows.Point(0, 0);
             LastPosition = MousePosition;
             VectorOfMousePosition = new PointCollection();
         }

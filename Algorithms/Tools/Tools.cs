@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.Windows;
 using System.Drawing;
 using System;
+using Algorithms.Utilities;
 namespace Algorithms.Tools
 {
     public class Tools
@@ -72,8 +73,96 @@ namespace Algorithms.Tools
         }
         #endregion
 
+        #region Adaptive Binary
+        public static Image<Gray, byte> AdaptiveBinary(Image<Gray, byte> inputImage, int windowDimension)
+        {
+            Image<Gray, byte> result = new Image<Gray, byte>(inputImage.Size);
+            Image<Gray, double> integralImage = Utils.CalculateIntegralImage(inputImage);
+
+            int halfDimension = windowDimension / 2;
+            for (int y = 0; y < inputImage.Height; y++)
+            {
+                for (int x = 0; x < inputImage.Width; x++)
+                {
+                    int x0 = Math.Max(x - halfDimension - 1, 0);
+                    int y0 = Math.Max(y - halfDimension - 1, 0);
+                    int x1 = Math.Min(x + halfDimension, integralImage.Width - 1);
+                    int y1 = Math.Min(y + halfDimension, integralImage.Height - 1);
+
+                    double sum = 0;
+                    if (x0 == 0 && y0 == 0)
+                    {
+                        sum = integralImage.Data[y1, x1, 0];
+                    }
+                    else if (y0 == 0)
+                    {
+                        sum = integralImage.Data[y1, x1, 0] - integralImage.Data[y1, x0 - 1, 0];
+                    }
+                    else if (x0 == 0)
+                    {
+                        sum = integralImage.Data[y1, x1, 0] - integralImage.Data[y0 - 1, x1, 0];
+                    }
+                    else {
+                        sum = integralImage.Data[y1, x1, 0] + integralImage.Data[y0 - 1, x0 - 1, 0] -
+                            integralImage.Data[y1, x0 - 1, 0] - integralImage.Data[y0 - 1, x1, 0];
+                    }
+
+                    double mean = sum / (windowDimension * windowDimension);
+                    double threshold = mean * Utils.B;
+                    if (inputImage.Data[y, x, 0] >= threshold)
+                        result.Data[y, x, 0] = 255;
+                    else
+                        result.Data[y, x, 0] = 0;
+                }
+            }
+
+                    return result;
+        }
+        #endregion
+
+        #region GammaCorrection
+        public static Image<TColor, TDepth> GammaCorrection<TColor, TDepth>(
+        Image<TColor, TDepth> inputImage,
+        double gammaValue)
+        where TColor : struct, IColor
+        where TDepth : struct
+        {
+            Image<TColor, TDepth> result = new Image<TColor, TDepth>(inputImage.Width, inputImage.Height);
+            for (int i = 0; i < inputImage.Height; i++) {
+                for (int j = 0; j < inputImage.Width; j++)
+                {
+                    if (typeof(TColor) == typeof(Rgb) || typeof(TColor) == typeof(Bgr))
+                    {
+
+                        for (int k = 0; k < 3; k++) {
+                            //result.Data[i, j, k] = (TDepth)(object)(byte)(Math.Pow((double)(dynamic)inputImage.Data[i, j, k] / 255.0, 1.0 / gammaValue) * 255);
+                            // Get the original pixel value as a double
+                            double pixelValue = (double)(dynamic)inputImage.Data[i, j, k];
+
+                            // Apply gamma correction
+                            double correctedValue = Math.Pow(pixelValue / 255.0, 1.0 / gammaValue) * 255;
+
+                            // Clamp the value to ensure it remains in the valid range
+                            correctedValue = Math.Max(0, Math.Min(255, correctedValue));
+
+                            // Assign the corrected value, converting back to TDepth
+                            result.Data[i, j, k] = (TDepth)(object)(byte)correctedValue;
+                        }
+                    }
+                            
+                    
+             
+                    else { //grayscale
+                        result.Data[i, j, 0] = (TDepth)(object)(byte)(Math.Pow((double)(dynamic)inputImage.Data[i, j, 0] / 255.0, 1.0 / gammaValue) * 255);
+                    }
+                }
+            }
+            return result;
+        }
+            #endregion
+
         #region Crop
-        public static Image<TColor, TDepth> Crop<TColor, TDepth>(
+            public static Image<TColor, TDepth> Crop<TColor, TDepth>(
         Image<TColor, TDepth> inputImage,
         Point firstMousePos,
         Point lastMousePos)

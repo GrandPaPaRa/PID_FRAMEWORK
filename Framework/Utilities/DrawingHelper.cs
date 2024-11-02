@@ -170,6 +170,8 @@ namespace Framework.Utilities
 
         public static void RemoveUiElements(Canvas canvas)
         {
+            if (canvas == null)
+                return;
             RemoveUiElements<Line>(canvas);
             RemoveUiElements<Rectangle>(canvas);
             RemoveUiElements<Ellipse>(canvas);

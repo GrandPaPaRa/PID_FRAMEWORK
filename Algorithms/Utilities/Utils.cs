@@ -1,12 +1,17 @@
 ﻿using Emgu.CV;
 using Emgu.CV.Structure;
-
+using System;
 using static System.Math;
 
 namespace Algorithms.Utilities
 {
+    
     public class Utils
     {
+        #region Constants
+        public static readonly double B = 0.8;
+        #endregion
+
         #region Change pixel color
         public static void SetPixelColor<TColor>(Image<TColor, byte> inputImage, int row, int column, TColor pixel)
             where TColor : struct, IColor
@@ -95,5 +100,34 @@ namespace Algorithms.Utilities
             (rhs, lhs) = (lhs, rhs);
         }
         #endregion
+
+        #region Calculate Integral Image 
+        public static Image<Gray, double> CalculateIntegralImage(Image<Gray, byte> initialImage) {
+            Image<Gray, double> integralImage = new Image<Gray, double>(initialImage.Size);
+            for (int y = 0; y < initialImage.Height; y++) {
+                for (int x = 0; x < initialImage.Width; x++) {
+                    if (x == 0 && y == 0)
+                    {
+                        integralImage.Data[y, x, 0] = initialImage.Data[y, x, 0];
+                    }
+                    else if (x == 0)
+                    {
+                        integralImage.Data[y, x, 0] = integralImage.Data[y - 1, 0, 0] + initialImage.Data[y, 0, 0];
+                    }
+                    else if (y == 0)
+                    {
+                        integralImage.Data[y, x, 0] = integralImage.Data[0, x - 1, 0] + initialImage.Data[0, x, 0];
+                    }
+                    else {
+                        integralImage.Data[y, x, 0] = integralImage.Data[y, x - 1, 0] + integralImage.Data[y - 1, x, 0]
+                            - integralImage.Data[y - 1, x - 1, 0] + initialImage.Data[y, x, 0];
+                    }
+                    
+                }
+            }
+            return integralImage;
+        }
+        #endregion
+
     }
 }
