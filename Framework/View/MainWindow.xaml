@@ -215,6 +215,14 @@
                 <MenuItem Header="Low-pass"
                           Foreground="#1E1E1E">
 
+                    <MenuItem Header="Median Filter (Single Thread)" Foreground="#1E1E1E"
+                    Command="{Binding Path=MenuCommands.MedianFilterCommand}"
+                    CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
+
+                    <MenuItem Header="Median Filter (Parallel)" Foreground="#1E1E1E"
+                    Command="{Binding Path=MenuCommands.MedianFilterParallelCommand}"
+                    CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
+
                 </MenuItem>
                 <MenuItem Header="High-pass"
                           Foreground="#1E1E1E">

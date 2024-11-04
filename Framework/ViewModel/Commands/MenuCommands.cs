@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Controls;
+using System.Diagnostics;
 using static System.Windows.MessageBox;
 
 
@@ -885,19 +886,107 @@ namespace Framework.ViewModel
         }
         #endregion
 
-       #endregion
+        #endregion
 
         #region Filters
-                #endregion
+
+        #region Median Filter
+        private ICommand _medianFilterCommand;
+        public ICommand MedianFilterCommand
+        {
+            get
+            {
+                if (_medianFilterCommand == null)
+                    _medianFilterCommand = new RelayCommand(MedianFilter);
+                return _medianFilterCommand;
+            }
+        }
+        private void MedianFilter(object parameter)
+        {
+            if (InitialImage == null)
+            {
+                System.Windows.MessageBox.Show("Please add an image !");
+                return;
+            }
+            ClearProcessedCanvas(parameter);
+            List<string> parameters = new List<string>() { "Dimension for filter: ", };
+            DialogBox window = new DialogBox(_mainVM, parameters);
+            window.ShowDialog();
+
+            List<double> values = window.GetValues();
+            int windowDimension = (int)values[0];
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            if (GrayInitialImage != null)
+            {
+                GrayProcessedImage = Tools.MedianFilter(GrayInitialImage, windowDimension,false);
+                ProcessedImage = Convert(GrayProcessedImage);
+            }
+            else // if (ColorInitialImage != null)
+            {
+                ColorProcessedImage = Tools.MedianFilter(ColorInitialImage, windowDimension,false);
+                ProcessedImage = Convert(ColorProcessedImage);
+            }
+
+            stopwatch.Stop();
+            double elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
+            System.Windows.MessageBox.Show("Elapsed time: " + elapsedMilliseconds + " ms", "Execution Time", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+
+        private ICommand _medianFilterParallelCommand;
+        public ICommand MedianFilterParallelCommand
+        {
+            get
+            {
+                if (_medianFilterParallelCommand == null)
+                    _medianFilterParallelCommand = new RelayCommand(MedianFilterParallel);
+                return _medianFilterParallelCommand;
+            }
+        }
+        private void MedianFilterParallel(object parameter)
+        {
+            if (InitialImage == null)
+            {
+                System.Windows.MessageBox.Show("Please add an image !");
+                return;
+            }
+            ClearProcessedCanvas(parameter);
+            List<string> parameters = new List<string>() { "Dimension for filter: ", };
+            DialogBox window = new DialogBox(_mainVM, parameters);
+            window.ShowDialog();
+
+            List<double> values = window.GetValues();
+            int windowDimension = (int)values[0];
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            if (GrayInitialImage != null)
+            {
+                GrayProcessedImage = Tools.MedianFilter(GrayInitialImage, windowDimension, true);
+                ProcessedImage = Convert(GrayProcessedImage);
+            }
+            else // if (ColorInitialImage != null)
+            {
+                ColorProcessedImage = Tools.MedianFilter(ColorInitialImage, windowDimension, true);
+                ProcessedImage = Convert(ColorProcessedImage);
+            }
+            stopwatch.Stop();
+            double elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
+            System.Windows.MessageBox.Show("Elapsed time: " + elapsedMilliseconds + " ms", "Execution Time", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        #endregion
+        #endregion
 
         #region Morphological operations
-                #endregion
+        #endregion
 
         #region Geometric transformations
-                #endregion
+        #endregion
 
         #region Segmentation
-                #endregion
+        #endregion
 
         #region Save processed image as original image
         private ICommand _saveAsOriginalImageCommand;

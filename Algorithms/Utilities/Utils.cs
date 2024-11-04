@@ -1,6 +1,8 @@
 ﻿using Emgu.CV;
 using Emgu.CV.Structure;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using static System.Math;
 
 namespace Algorithms.Utilities
@@ -127,6 +129,93 @@ namespace Algorithms.Utilities
             }
             return integralImage;
         }
+        #endregion
+
+        #region Median Filter for one pixel
+        public static void ApplyMedianFilterAtPixel<TColor>(Image<TColor, byte> inputImage, Image<TColor, byte> processedImage, int x, int y, int windowSize) where TColor : struct, IColor
+        {
+            // Ensure the window size is odd and greater than 1
+            if (windowSize < 3)
+            {
+                throw new ArgumentException("Window size must be greater than 3.");
+            }
+
+            int halfWindowSize = windowSize / 2;
+
+            // Lists to hold values for each channel
+            List<byte> redValues = new List<byte>();
+            List<byte> greenValues = new List<byte>();
+            List<byte> blueValues = new List<byte>();
+
+            // Collect pixel values in the neighborhood
+            for (int dy = -halfWindowSize; dy <= halfWindowSize; dy++)
+            {
+                for (int dx = -halfWindowSize; dx <= halfWindowSize; dx++)
+                {
+                    int neighborX = x + dx;
+                    int neighborY = y + dy;
+
+                    // Check bounds to avoid accessing outside the image
+                    if (neighborX >= 0 && neighborX < inputImage.Width && neighborY >= 0 && neighborY < inputImage.Height)
+                    {
+                        if (typeof(TColor) == typeof(Gray))
+                        {
+                            // For grayscale images, add intensity directly
+                            redValues.Add(inputImage.Data[neighborY, neighborX, 0]);  // Only one channel for grayscale
+                        }
+                        else if (typeof(TColor) == typeof(Rgb) || typeof(TColor) == typeof(Bgr) )
+                        {
+                            // For RGB images, add each channel to its respective list
+                            redValues.Add(inputImage.Data[neighborY, neighborX, 0]);
+                            greenValues.Add(inputImage.Data[neighborY, neighborX, 1]);
+                            blueValues.Add(inputImage.Data[neighborY, neighborX, 2]);
+                        }
+                    }
+                }
+            }
+            byte medianRed = 0, medianGreen = 0, medianBlue = 0;
+            // Calculate the median for each channel
+            if (typeof(TColor) == typeof(Gray))
+            {
+                medianRed = CalculateMedian(redValues);
+            }
+            else {
+                medianRed = CalculateMedian(redValues);
+                medianGreen = CalculateMedian(greenValues);
+                medianBlue = CalculateMedian(blueValues);
+            }
+            
+
+            // Set the median value back to the pixel
+            if (typeof(TColor) == typeof(Gray))
+            {
+                processedImage.Data[y, x, 0] = medianRed;  // Using redValues since grayscale uses a single list
+            }
+            else if (typeof(TColor) == typeof(Rgb) || typeof(TColor) == typeof(Bgr))
+            {
+                processedImage.Data[y, x, 0] = medianRed;
+                processedImage.Data[y, x, 1] = medianGreen;
+                processedImage.Data[y, x, 2] = medianBlue;
+
+            }
+        }
+
+        private static byte CalculateMedian(List<byte> values)
+        {
+            values.Sort();
+            int count = values.Count;
+            if (count % 2 == 1)
+            {
+                // Odd number of elements, take the middle one
+                return values[count / 2];
+            }
+            else
+            {
+                // Even number of elements, average the two middle ones
+                return (byte)((values[(count / 2) - 1] + values[count / 2]) / 2);
+            }
+        }
+
         #endregion
 
     }

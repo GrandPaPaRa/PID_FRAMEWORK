@@ -5,6 +5,8 @@ using System.Windows;
 using System.Drawing;
 using System;
 using Algorithms.Utilities;
+using System.Linq;
+using System.Threading.Tasks;
 namespace Algorithms.Tools
 {
     public class Tools
@@ -273,6 +275,41 @@ namespace Algorithms.Tools
             return (mean, rms);
         }
         #endregion
+
+        #region Median Filter
+
+        public static Image<TColor, byte> MedianFilter<TColor>(
+        Image<TColor, byte> inputImage, int windowSize, bool parallel)
+        where TColor : struct, IColor
+        {
+            Image<TColor, byte> result = new Image<TColor, byte>(inputImage.Size);
+
+            if (!parallel)
+            {
+                foreach (int y in Enumerable.Range(0, inputImage.Height - 1))
+                {
+                    for (int x = 0; x < inputImage.Width; x++)
+                    {
+                        Utils.ApplyMedianFilterAtPixel(inputImage, result, x, y, windowSize);
+                    }
+                }
+            }
+            else {
+                Parallel.ForEach(Enumerable.Range(0, inputImage.Height - 1), y =>
+                {
+                    for (int x = 0; x < inputImage.Width; x++)
+                    {
+                        Utils.ApplyMedianFilterAtPixel(inputImage, result, x, y, windowSize);
+                    }
+                });
+            }
+            
+
+            return result;
+
+        }
+
+        #endregion
     }
-    
+
 }
