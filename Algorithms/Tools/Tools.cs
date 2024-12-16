@@ -7,6 +7,8 @@ using System;
 using Algorithms.Utilities;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Windows.Forms.VisualStyles;
 namespace Algorithms.Tools
 {
     public class Tools
@@ -309,6 +311,166 @@ namespace Algorithms.Tools
 
         }
 
+        #endregion
+
+        #region Canny Filter
+        // Kerneluri Sobel
+        private static readonly double[,] sobelX = new double[,]
+        {
+            { -1, 0, 1 },
+            { -2, 0, 2 },
+            { -1, 0, 1 }
+        };
+
+        private static readonly double[,] sobelY = new double[,]
+        {
+            { -1, -2, -1 },
+            { 0, 0, 0 },
+            { 1, 2, 1 }
+        };
+
+        public static Image<Gray, byte> CannyFilter(Image<Gray, byte> inputImage, double lowThreshold = 50.0, double highThreshold = 100.0)
+        {
+            int width = inputImage.Width;
+            int height = inputImage.Height;
+
+            Image<Gray, byte> gradientMagnitude = new Image<Gray, byte>(width, height);
+            Image<Gray, float> gradientX = new Image<Gray, float>(width, height);
+            Image<Gray, float> gradientY = new Image<Gray, float>(width, height);
+
+            Image<Gray, byte> result = inputImage.SmoothGaussian(5); // 5 is the kernel size
+
+            // Calcularea gradientelor pe axele x și y
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    double gradX = 0.0;
+                    double gradY = 0.0;
+
+                    for (int ky = -1; ky <= 1; ky++)
+                    {
+                        for (int kx = -1; kx <= 1; kx++)
+                        {
+                            double pixelValue = result.Data[y + ky, x + kx, 0];
+                            gradX += pixelValue * sobelX[ky + 1, kx + 1];
+                            gradY += pixelValue * sobelY[ky + 1, kx + 1];
+                        }
+                    }
+
+                    gradientX.Data[y, x, 0] = (float)gradX;
+                    gradientY.Data[y, x, 0] = (float)gradY;
+
+                    double magnitude = Math.Sqrt(gradX * gradX + gradY * gradY);
+                    gradientMagnitude.Data[y, x, 0] = (byte)(magnitude > 255 ? 255 : magnitude);
+
+                }
+            }
+
+            // Non-Maxima Suppression
+            Image<Gray, byte> nmsResult = new Image<Gray, byte>(width, height);
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    double gradX = gradientX.Data[y, x, 0];
+                    double gradY = gradientY.Data[y, x, 0];
+                    double magnitude = gradientMagnitude.Data[y, x, 0];
+
+
+
+                    // Calcularea unghiului folosind Math.Atan
+                    double angle = gradX != 0 ? Math.Atan(gradY / gradX) : (gradY > 0 ? Math.PI / 2 : -Math.PI / 2);
+
+                    bool isMax = true;
+                    if (angle >= -Math.PI / 8 && angle < Math.PI / 8 || angle >= -Math.PI && angle < -7 * Math.PI / 8 || angle > 7 * Math.PI / 8 && angle <= Math.PI)
+                    {
+                        // Direcția orizontală
+                        if (magnitude < gradientMagnitude.Data[y, x - 1, 0] || magnitude <= gradientMagnitude.Data[y, x + 1, 0])
+                            isMax = false;
+                    }
+                    else if (angle >= -7 * Math.PI / 8 && angle <= -5 * Math.PI / 8 || angle >= Math.PI / 8 && angle <= 3 * Math.PI / 8)
+                    {
+                        // Direcția diagonală în jos
+                        if (magnitude < gradientMagnitude.Data[y - 1, x - 1, 0] || magnitude <= gradientMagnitude.Data[y + 1, x + 1, 0])
+                            isMax = false;
+                    }
+                    else if (angle > -5 * Math.PI / 8 && angle < -3 * Math.PI / 8 || angle > 3 * Math.PI / 8 && angle < 5 * Math.PI / 8)
+                    {
+                        // Direcția verticală
+                        if (magnitude < gradientMagnitude.Data[y - 1, x, 0] || magnitude <= gradientMagnitude.Data[y + 1, x, 0])
+                            isMax = false;
+                    }
+                    else if (angle >= -3 * Math.PI / 8 && angle <= -Math.PI / 8 || angle >= 5 * Math.PI / 8 && angle <= 7 * Math.PI / 8)
+                    {
+                        // Direcția diagonală în sus
+                        if (magnitude < gradientMagnitude.Data[y - 1, x + 1, 0] || magnitude <= gradientMagnitude.Data[y + 1, x - 1, 0])
+                            isMax = false;
+                    }
+
+                    nmsResult.Data[y, x, 0] = isMax ? (byte)magnitude : (byte)0;
+                }
+            }
+
+            // Hysteresis Thresholding
+            Image<Gray, byte> edgeImage = new Image<Gray, byte>(width, height);
+            bool[,] visited = new bool[height, width];
+            Queue<(int, int)> queue = new Queue<(int, int)>();
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if (nmsResult.Data[y, x, 0] >= highThreshold)
+                    {
+                        edgeImage.Data[y, x, 0] = 255;
+                        queue.Enqueue((y, x));
+                        visited[y, x] = true;
+                    }
+                }
+            }
+
+
+            while (queue.Count > 0)
+            {
+                var (currentY, currentX) = queue.Dequeue();
+
+                for (int ky = -1; ky <= 1; ky++)
+                {
+                    for (int kx = -1; kx <= 1; kx++)
+                    {
+                        int newY = currentY + ky;
+                        int newX = currentX + kx;
+
+                        if (newY >= 0 && newY < height && newX >= 0 && newX < width && !visited[newY, newX])
+                        {
+                            if (nmsResult.Data[newY, newX, 0] >= lowThreshold)
+                            {
+                                edgeImage.Data[newY, newX, 0] = 255;
+                                queue.Enqueue((newY, newX));
+                                visited[newY, newX] = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // După finalizarea procesului de hysteresis thresholding
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    // Setează explicit pixelii care nu sunt 255 la 0
+                    if (edgeImage.Data[y, x, 0] != 255)
+                    {
+                        edgeImage.Data[y, x, 0] = 0;
+                    }
+                }
+            }
+
+
+            return edgeImage;
+        }
         #endregion
     }
 

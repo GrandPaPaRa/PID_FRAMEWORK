@@ -909,7 +909,7 @@ namespace Framework.ViewModel
                 return;
             }
             ClearProcessedCanvas(parameter);
-            List<string> parameters = new List<string>() { "Dimension for filter: ", };
+            List<string> parameters = new List<string>() { "Dimension for filter: ",};
             DialogBox window = new DialogBox(_mainVM, parameters);
             window.ShowDialog();
 
@@ -977,18 +977,61 @@ namespace Framework.ViewModel
             System.Windows.MessageBox.Show("Elapsed time: " + elapsedMilliseconds + " ms", "Execution Time", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         #endregion
+
+        #region Cammy Filter
+        private ICommand _cammyFilterCommand;
+        public ICommand CammyFilterCommand
+        {
+            get
+            {
+                if (_cammyFilterCommand == null)
+                    _cammyFilterCommand = new RelayCommand(CammyFilter);
+                return _cammyFilterCommand;
+            }
+        }
+        private void CammyFilter(object parameter)
+        {
+            if (InitialImage == null)
+            {
+                System.Windows.MessageBox.Show("Please add an image !");
+                return;
+            }
+            ClearProcessedCanvas(parameter);
+            List<string> parameters = new List<string>() { "Low Threshold: ", "High Threshold: ", };
+            DialogBox window = new DialogBox(_mainVM, parameters);
+            window.ShowDialog();
+
+            List<double> values = window.GetValues();
+            double lowThreshold = values[0];
+            double highThreshold = values[1];
+
+
+            if (GrayInitialImage != null)
+            {
+                GrayProcessedImage = Tools.CannyFilter(GrayInitialImage, lowThreshold, highThreshold);
+                ProcessedImage = Convert(GrayProcessedImage);
+            }
+            else // if (ColorInitialImage != null)
+            {
+                GrayProcessedImage = Tools.Convert(ColorInitialImage);
+                GrayProcessedImage = Tools.CannyFilter(GrayInitialImage, lowThreshold, highThreshold);
+                ProcessedImage = Convert(GrayProcessedImage);
+            }
+        }
         #endregion
 
-        #region Morphological operations
-        #endregion
+            #endregion
 
-        #region Geometric transformations
-        #endregion
+            #region Morphological operations
+            #endregion
 
-        #region Segmentation
-        #endregion
+            #region Geometric transformations
+            #endregion
 
-        #region Save processed image as original image
+            #region Segmentation
+            #endregion
+
+            #region Save processed image as original image
         private ICommand _saveAsOriginalImageCommand;
         public ICommand SaveAsOriginalImageCommand
         {

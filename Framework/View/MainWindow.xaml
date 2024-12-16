@@ -226,7 +226,9 @@
                 </MenuItem>
                 <MenuItem Header="High-pass"
                           Foreground="#1E1E1E">
-
+                    <MenuItem Header="Cammy Filter" Foreground="#1E1E1E"
+                    Command="{Binding Path=MenuCommands.CammyFilterCommand}"
+                    CommandParameter="{Binding ElementName=canvasProcessedImage}"/>
                 </MenuItem>
             </MenuItem>
 
