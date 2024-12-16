@@ -218,5 +218,67 @@ namespace Algorithms.Utilities
 
         #endregion
 
+        #region Dilation
+        public static Image<Bgr, byte> Dilation(Image<Bgr, byte> initialImage, int maskSize) {
+            Image<Bgr, byte> result = new Image<Bgr, byte>(initialImage.Size);
+            for (int y = 0; y < initialImage.Height; y++) {
+                for (int x = 0; x < initialImage.Width; x++) {
+                    double maxColorValue = -1;
+                    Bgr maxColor = new Bgr(0,0,0);
+                    for (int j = -maskSize / 2; j <= maskSize / 2; j++) {
+                        for (int i = -maskSize / 2; i <= maskSize / 2; i++)
+                        {
+                            if (y + i >= 0 && y + i < initialImage.Height && x + j >= 0 && x + j < initialImage.Width) {
+                                Bgr pixel = initialImage[y + i, x + j];
+                                double currentColorValue = Math.Sqrt(pixel.Red * pixel.Red + pixel.Green * pixel.Green + pixel.Blue * pixel.Blue);
+                                if (currentColorValue > maxColorValue) {
+                                    maxColor = pixel;
+                                    maxColorValue = currentColorValue;
+                                }
+                            }
+                            
+                        }
+                    }
+                    result[y, x] = maxColor;
+                }
+            }
+
+            return result;
+        }
+        #endregion
+        #region Erosion
+        public static Image<Bgr, byte> Erosion(Image<Bgr, byte> initialImage, int maskSize)
+        {
+            Image<Bgr, byte> result = new Image<Bgr, byte>(initialImage.Size);
+            for (int y = 0; y < initialImage.Height; y++)
+            {
+                for (int x = 0; x < initialImage.Width; x++)
+                {
+                    double minColorValue = 999999;
+                    Bgr minColor = new Bgr(0, 0, 0);
+                    for (int j = -maskSize / 2; j <= maskSize / 2; j++)
+                    {
+                        for (int i = -maskSize / 2; i <= maskSize / 2; i++)
+                        {
+                            if (y + i >= 0 && y + i < initialImage.Height && x + j >= 0 && x + j < initialImage.Width)
+                            {
+                                Bgr pixel = initialImage[y + i, x + j];
+                                double currentColorValue = Math.Sqrt(pixel.Red * pixel.Red + pixel.Green * pixel.Green + pixel.Blue * pixel.Blue);
+                                if (currentColorValue < minColorValue)
+                                {
+                                    minColor = pixel;
+                                    minColorValue = currentColorValue;
+                                }
+                            }
+
+                        }
+                    }
+                    result[y, x] = minColor;
+                }
+            }
+
+            return result;
+        }
+        #endregion
     }
 }

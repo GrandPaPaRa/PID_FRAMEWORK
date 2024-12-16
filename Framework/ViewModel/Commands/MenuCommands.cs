@@ -1020,18 +1020,59 @@ namespace Framework.ViewModel
         }
         #endregion
 
-            #endregion
+        #endregion
 
-            #region Morphological operations
-            #endregion
+        #region Morphological operations
+        #region Opening
+        private ICommand _openingCommand;
+        public ICommand OpeningCommand
+        {
+            get
+            {
+                if (_openingCommand == null)
+                    _openingCommand = new RelayCommand(Opening);
+                return _openingCommand;
+            }
+        }
+        private void Opening(object parameter)
+        {
+            if (InitialImage == null)
+            {
+                System.Windows.MessageBox.Show("Please add an image !");
+                return;
+            }
+            ClearProcessedCanvas(parameter);
+            List<string> parameters = new List<string>() { "Mask size: ", };
+            DialogBox window = new DialogBox(_mainVM, parameters);
+            window.ShowDialog();
 
-            #region Geometric transformations
-            #endregion
+            List<double> values = window.GetValues();
+            int maskSize = (int)values[0];
+            
 
-            #region Segmentation
-            #endregion
 
-            #region Save processed image as original image
+            if (GrayInitialImage != null)
+            {
+                System.Windows.MessageBox.Show("Please add a color image !");
+                return;
+            }
+            else // if (ColorInitialImage != null)
+            {
+                
+                ColorProcessedImage = Tools.Opening(ColorInitialImage, maskSize);
+                ProcessedImage = Convert(ColorProcessedImage);
+            }
+        }
+        #endregion
+        #endregion
+
+        #region Geometric transformations
+        #endregion
+
+        #region Segmentation
+        #endregion
+
+        #region Save processed image as original image
         private ICommand _saveAsOriginalImageCommand;
         public ICommand SaveAsOriginalImageCommand
         {

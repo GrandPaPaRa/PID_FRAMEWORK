@@ -472,6 +472,17 @@ namespace Algorithms.Tools
             return edgeImage;
         }
         #endregion
+
+        #region Opening
+        public static Image<Bgr, byte> Opening(Image<Bgr, byte> initialImage, int maskSize) {
+            
+            Image<Bgr, byte> result = Utils.Erosion(initialImage, maskSize);
+            result = Utils.Dilation(result, maskSize);
+
+
+            return result;
+        }
+        #endregion
     }
 
 }
